@@ -1,0 +1,16 @@
+[package]
+name = "quoin-journal"
+version = "0.1.0"
+authors = ["Nathaniel McCallum <npmccallum@redhat.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+quoin-device = { path = "../quoin-device" }
+crc = "1.8"
+
+[dev-dependencies]
+quoin-poweroff = { path = "../quoin-poweroff" }
+quoin-memory = { path = "../quoin-memory" }
+rand = "0.8"

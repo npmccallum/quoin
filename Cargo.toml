@@ -1,0 +1,15 @@
+[workspace]
+exclude = [ ".gitignore", ".github/*" ]
+members = [
+    "quoin-device",
+    "quoin-codec",
+
+    "quoin-integrity",
+    "quoin-poweroff",
+    "quoin-corrupt",
+    "quoin-journal",
+    "quoin-memory",
+    "quoin-file",
+    "quoin-null",
+    "quoin-gpt",
+]
