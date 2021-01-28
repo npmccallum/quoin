@@ -4,12 +4,12 @@ members = [
     "quoin-device",
     "quoin-codec",
 
-    "quoin-integrity",
     "quoin-poweroff",
     "quoin-corrupt",
     "quoin-journal",
     "quoin-memory",
     "quoin-crypt",
+    "quoin-hmac",
     "quoin-file",
     "quoin-null",
     "quoin-gpt",
