@@ -45,12 +45,22 @@ impl<T: Device<LOWER>, const LOWER: usize, const UPPER: usize> Journal<T, LOWER,
         Ok(())
     }
 
-    pub fn load(device: T) -> Result<Self, T::Error> {
+    /// Creates a new journal instance
+    ///
+    /// **NOTE WELL**: You **MUST** immediately call [Journal::reply] in order
+    /// to enforce the tear-free guarantee.
+    #[inline]
+    pub fn new(device: T) -> Self {
+        Self { device }
+    }
+
+    /// Attempts to replay the journal
+    #[inline]
+    pub fn replay(&mut self) -> Result<(), T::Error> {
         assert_eq!(UPPER % LOWER, 0);
 
-        let mut journal = Self { device };
-        let meta = journal.pull(0)?;
-        let data = journal.pull(1)?;
+        let meta = self.pull(0)?;
+        let data = self.pull(1)?;
 
         let idx = u64::from_le_bytes(unsafe { meta.align_to::<[u8; 8]>().1[0] });
         let crc = u64::from_le_bytes(unsafe { meta.align_to::<[u8; 8]>().1[1] });
@@ -59,10 +69,10 @@ impl<T: Device<LOWER>, const LOWER: usize, const UPPER: usize> Journal<T, LOWER,
         digest.write(&idx.to_le_bytes());
         digest.write(&data);
         if digest.finish() == crc {
-            journal.push(idx + 2, &data)?;
+            self.push(idx + 2, &data)?;
         }
 
-        Ok(journal)
+        Ok(())
     }
 }
 
@@ -111,7 +121,8 @@ mod tests {
     #[test]
     fn tear() {
         let memory: Memory<512, 10> = Memory::default();
-        let mut tear = Tear::new(memory, 0.1);
+        let tear = Tear::new(memory, 0.1);
+        let mut jrnl = Journal::new(tear);
 
         let blocks = [[0x00u8; 1024], [0xffu8; 1024]];
         let mut trng = rand::thread_rng();
@@ -120,15 +131,11 @@ mod tests {
         let mut written = 0.0;
         let mut succ = false;
         for i in 0..10_000 {
-            // Load a journal object
-            let mut jrnl = loop {
-                if let Ok(x) = Journal::load(&mut tear) {
-                    break x;
-                }
-            };
-
             // If our last block write failed.
             if i > 0 && !succ {
+                // Replay the journal
+                while let Err(..) = jrnl.replay() {}
+
                 // Test that *all* blocks have no tearing
                 for j in 0..jrnl.len() {
                     let block = jrnl.get(j).unwrap();
