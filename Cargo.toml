@@ -9,6 +9,7 @@ members = [
     "quoin-corrupt",
     "quoin-journal",
     "quoin-memory",
+    "quoin-crypt",
     "quoin-file",
     "quoin-null",
     "quoin-gpt",
